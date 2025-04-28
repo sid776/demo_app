@@ -5,8 +5,8 @@ scikit-learn
 tensorflow
 keras
 plotly
-qiskit==0.43.0
-qiskit-aer==0.12.0
+qiskit
+qiskit-aer
 requests==2.31.0
 python-dotenv
 seaborn==0.13.2
