@@ -4,8 +4,7 @@ numpy
 scikit-learn
 tensorflow
 plotly
-qiskit
-qiskit-aer
+qiskit-terra
 requests
 python-dotenv
 seaborn
