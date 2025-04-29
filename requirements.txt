@@ -4,6 +4,8 @@ numpy
 scikit-learn
 tensorflow
 plotly
+qiskit
+qiskit_aer
 qiskit-terra
 requests
 python-dotenv
