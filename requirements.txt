@@ -3,13 +3,12 @@ pandas
 numpy
 scikit-learn
 tensorflow
-keras
 plotly
 qiskit
 qiskit-aer
-requests==2.31.0
+requests
 python-dotenv
-seaborn==0.13.2
+seaborn
 scipy
 torch
 statsmodels
