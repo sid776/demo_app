@@ -14,9 +14,9 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Conv1D, MaxPooling1D, Flatten
-from qiskit.circuit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit_aer import Aer
-from qiskit.visualization import plot_histogram
+from qiskit_aer import execute
 from qiskit.circuit.library import QFT
 import requests
 import seaborn as sns
