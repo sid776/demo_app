@@ -4,9 +4,8 @@ numpy
 scikit-learn
 tensorflow
 plotly
-qiskit
-qiskit_aer
-qiskit-terra
+qiskit==0.44.1
+qiskit-aer==0.12.2
 requests
 python-dotenv
 seaborn
