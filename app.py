@@ -16,7 +16,6 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Conv1D, MaxPooling1D, Flatten
 from qiskit.circuit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit_aer import Aer
-from qiskit import execute
 from qiskit.visualization import plot_histogram
 from qiskit.circuit.library import QFT
 import requests
@@ -554,7 +553,7 @@ elif page == "Quantum Computing":
         # Define backend for quantum simulation
         backend = Aer.get_backend('qasm_simulator')
         # Run on simulator
-        job = execute(qc_super, backend, shots=1000)
+        job = backend.run(qc_super, shots=1000)
         result = job.result()
         counts = result.get_counts()
         
@@ -576,7 +575,7 @@ elif page == "Quantum Computing":
         qc_par = QuantumCircuit(2, 2)
         qc_par.h([0, 1])  # Put both qubits in superposition
         qc_par.measure([0, 1], [0, 1])
-        job = execute(qc_par, backend, shots=1024)
+        job = backend.run(qc_par, shots=1024)
         result = job.result()
         counts = result.get_counts()
         fig = px.bar(x=list(counts.keys()), y=list(counts.values()),
