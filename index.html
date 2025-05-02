@@ -3,6 +3,7 @@
 <head>
     <title>Advanced Analytics Dashboard</title>
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,6 +27,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .tab {
             padding: 12px 24px;
@@ -38,11 +40,20 @@
             text-decoration: none;
             transition: all 0.3s ease;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 150px;
         }
         .tab:hover {
             background-color: #f8f9fa;
         }
         .tab.active {
+            background-color: #ff69b4;
+            color: white;
+        }
+        .tab.ml {
+            background-color: #673ab7;
+            color: white;
+        }
+        .tab.dl {
             background-color: #ff69b4;
             color: white;
         }
@@ -91,7 +102,7 @@
             border-radius: 4px;
             border: 1px solid #ddd;
             font-size: 14px;
-            min-width: 120px;
+            min-width: 200px;
         }
         button {
             background-color: #4CAF50;
@@ -107,7 +118,7 @@
         button:hover {
             background-color: #45a049;
         }
-        #circuit-container {
+        .graph {
             min-height: 400px;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -125,17 +136,33 @@
         .tab-content.active {
             display: block;
         }
-        .accuracy-graph {
-            min-height: 400px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-top: 20px;
-            background-color: white;
-        }
         .value-display {
             text-align: right;
             color: #666;
             margin-top: 5px;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .metric {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: white;
+            border-radius: 4px;
+            margin: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
         }
     </style>
 </head>
@@ -145,41 +172,68 @@
     </div>
 
     <div class="tabs">
-        <a href="#" class="tab active" data-tab="deep-learning">Deep Learning Analysis</a>
-        <a href="#" class="tab quantum" data-tab="quantum">Quantum Computing Analysis</a>
+        <a href="#" class="tab ml" data-tab="machine-learning">Machine Learning</a>
+        <a href="#" class="tab dl active" data-tab="deep-learning">Deep Learning</a>
+        <a href="#" class="tab quantum" data-tab="quantum">Quantum Computing</a>
         <a href="#" class="tab analysis" data-tab="general">General Analysis</a>
         <a href="#" class="tab readme" data-tab="readme">README</a>
     </div>
 
     <div class="grid">
         <div class="sidebar">
-            <h2>Machine Learning Configuration</h2>
-            <p>Select different ML algorithms and adjust training parameters. Learning rate affects training speed and convergence, while epochs determine training duration.</p>
+            <h2>Analysis Configuration</h2>
+            <p>Select different algorithms and adjust parameters. The dashboard uses a marketing campaign dataset to demonstrate various analysis techniques.</p>
             
             <h3>Select Algorithm</h3>
             <select id="algorithm" style="width: 100%; margin-bottom: 15px;">
-                <option>Random Forest</option>
-                <option>Neural Network</option>
-                <option>SVM</option>
+                <!-- Options will be populated based on selected tab -->
             </select>
 
-            <h3>Learning Rate</h3>
-            <input type="range" id="learning-rate" min="0.001" max="0.1" step="0.001" value="0.01" style="width: 100%;">
-            <div class="value-display">0.01</div>
-            
-            <h3>Number of Epochs</h3>
-            <input type="range" id="epochs" min="10" max="100" step="10" value="50" style="width: 100%;">
-            <div class="value-display">50</div>
+            <div id="ml-params">
+                <h3>Parameters</h3>
+                <div id="param-controls"></div>
+            </div>
 
-            <button onclick="startTraining()" style="width: 100%; margin-top: 20px;">Start Training</button>
+            <button onclick="runAnalysis()" style="width: 100%; margin-top: 20px;">Run Analysis</button>
         </div>
 
         <div class="container">
+            <!-- Machine Learning Analysis Tab -->
+            <div id="machine-learning" class="tab-content">
+                <h2>Machine Learning Analysis</h2>
+                <p>Analyze marketing campaign data using traditional machine learning algorithms.</p>
+                <div class="results">
+                    <div class="metric">
+                        <div class="metric-label">Accuracy</div>
+                        <div class="metric-value" id="ml-accuracy">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Precision</div>
+                        <div class="metric-value" id="ml-precision">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Recall</div>
+                        <div class="metric-value" id="ml-recall">-</div>
+                    </div>
+                </div>
+                <div id="ml-graph" class="graph"></div>
+            </div>
+
             <!-- Deep Learning Analysis Tab -->
             <div id="deep-learning" class="tab-content active">
-                <h2>Training Accuracy</h2>
-                <p>This graph shows how the model's accuracy improves during training. A higher learning rate leads to faster initial improvement, but may cause instability. More epochs allow the model to learn more complex patterns.</p>
-                <div id="accuracy-graph" class="accuracy-graph"></div>
+                <h2>Deep Learning Analysis</h2>
+                <p>Apply deep learning techniques to understand complex patterns in the marketing data.</p>
+                <div class="results">
+                    <div class="metric">
+                        <div class="metric-label">Training Accuracy</div>
+                        <div class="metric-value" id="dl-accuracy">-</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Loss</div>
+                        <div class="metric-value" id="dl-loss">-</div>
+                    </div>
+                </div>
+                <div id="dl-graph" class="graph"></div>
             </div>
 
             <!-- Quantum Computing Analysis Tab -->
@@ -201,31 +255,327 @@
                     <button onclick="addGate()">Add Gate</button>
                     <button onclick="clearCircuit()">Clear Circuit</button>
                 </div>
-                <div id="circuit-container"></div>
+                <div id="circuit-container" class="graph"></div>
             </div>
 
             <!-- General Analysis Tab -->
             <div id="general" class="tab-content">
                 <h2>General Analysis</h2>
-                <p>Coming soon...</p>
+                <p>Explore basic statistics and visualizations of the marketing campaign data.</p>
+                <div id="general-graph" class="graph"></div>
             </div>
 
             <!-- README Tab -->
             <div id="readme" class="tab-content">
-                <h2>README</h2>
-                <p>This dashboard provides interactive visualization tools for machine learning and quantum computing analysis.</p>
+                <h2>Marketing Campaign Analysis Dashboard</h2>
+                <p>This dashboard provides comprehensive analysis tools for marketing campaign data using various techniques:</p>
                 <h3>Features:</h3>
                 <ul>
-                    <li>Deep Learning Analysis with real-time training visualization</li>
-                    <li>Quantum Circuit Builder with various quantum gates</li>
-                    <li>Configurable machine learning parameters</li>
-                    <li>Interactive visualizations</li>
+                    <li>Machine Learning Analysis:
+                        <ul>
+                            <li>Random Forest Classification</li>
+                            <li>Gradient Boosting</li>
+                            <li>Support Vector Machines</li>
+                            <li>K-Nearest Neighbors</li>
+                            <li>Logistic Regression</li>
+                        </ul>
+                    </li>
+                    <li>Deep Learning Analysis:
+                        <ul>
+                            <li>Multi-layer Perceptron</li>
+                            <li>Convolutional Neural Networks</li>
+                            <li>Recurrent Neural Networks</li>
+                            <li>LSTM Networks</li>
+                            <li>Transformer Models</li>
+                        </ul>
+                    </li>
+                    <li>Quantum Computing:
+                        <ul>
+                            <li>Quantum Circuits</li>
+                            <li>Quantum Kernels</li>
+                            <li>Variational Quantum Classifiers</li>
+                            <li>Quantum Feature Maps</li>
+                            <li>Quantum Ensemble Learning</li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
         </div>
     </div>
 
     <script>
+        // Algorithm options for each tab
+        const algorithms = {
+            'machine-learning': [
+                'Random Forest',
+                'Gradient Boosting',
+                'Support Vector Machine',
+                'K-Nearest Neighbors',
+                'Logistic Regression'
+            ],
+            'deep-learning': [
+                'Multi-layer Perceptron',
+                'Convolutional Neural Network',
+                'Recurrent Neural Network',
+                'LSTM Network',
+                'Transformer Model'
+            ],
+            'quantum': [
+                'Quantum Circuit',
+                'Quantum Kernel',
+                'Variational Quantum Classifier',
+                'Quantum Feature Map',
+                'Quantum Ensemble'
+            ]
+        };
+
+        // Parameters for each algorithm type
+        const algorithmParams = {
+            'Random Forest': [
+                { name: 'n_estimators', min: 10, max: 200, default: 100, step: 10 },
+                { name: 'max_depth', min: 2, max: 20, default: 10, step: 1 }
+            ],
+            'Gradient Boosting': [
+                { name: 'learning_rate', min: 0.01, max: 0.3, default: 0.1, step: 0.01 },
+                { name: 'n_estimators', min: 10, max: 200, default: 100, step: 10 }
+            ],
+            'Multi-layer Perceptron': [
+                { name: 'learning_rate', min: 0.001, max: 0.1, default: 0.01, step: 0.001 },
+                { name: 'epochs', min: 10, max: 100, default: 50, step: 10 }
+            ]
+            // Add more algorithm parameters as needed
+        };
+
+        // Sample marketing campaign data (we'll load this from a CSV in production)
+        const marketingData = {
+            features: ['age', 'income', 'campaign_duration', 'previous_purchases'],
+            target: 'conversion',
+            samples: 1000
+        };
+
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show active content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabId).classList.add('active');
+
+                // Update algorithm options
+                updateAlgorithmOptions(tabId);
+
+                // Update visualizations if needed
+                if (tabId === 'quantum') {
+                    updateCircuit();
+                } else {
+                    updateAnalysisGraph(tabId);
+                }
+            });
+        });
+
+        // Update algorithm dropdown based on selected tab
+        function updateAlgorithmOptions(tabId) {
+            const algorithmSelect = document.getElementById('algorithm');
+            algorithmSelect.innerHTML = '';
+            
+            if (algorithms[tabId]) {
+                algorithms[tabId].forEach(algo => {
+                    const option = document.createElement('option');
+                    option.value = algo;
+                    option.textContent = algo;
+                    algorithmSelect.appendChild(option);
+                });
+                updateParameterControls(algorithmSelect.value);
+            }
+        }
+
+        // Update parameter controls based on selected algorithm
+        function updateParameterControls(algorithm) {
+            const paramControls = document.getElementById('param-controls');
+            paramControls.innerHTML = '';
+
+            if (algorithmParams[algorithm]) {
+                algorithmParams[algorithm].forEach(param => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `
+                        <label>${param.name}</label>
+                        <input type="range" 
+                               min="${param.min}" 
+                               max="${param.max}" 
+                               step="${param.step}" 
+                               value="${param.default}"
+                               style="width: 100%;">
+                        <div class="value-display">${param.default}</div>
+                    `;
+                    paramControls.appendChild(div);
+
+                    // Add value display update
+                    const input = div.querySelector('input');
+                    const display = div.querySelector('.value-display');
+                    input.addEventListener('input', (e) => {
+                        display.textContent = e.target.value;
+                    });
+                });
+            }
+        }
+
+        // Run analysis based on selected tab and algorithm
+        function runAnalysis() {
+            const activeTab = document.querySelector('.tab.active').getAttribute('data-tab');
+            const algorithm = document.getElementById('algorithm').value;
+            
+            // Get parameter values
+            const params = {};
+            document.querySelectorAll('#param-controls input').forEach(input => {
+                params[input.previousElementSibling.textContent] = parseFloat(input.value);
+            });
+
+            // Update visualizations
+            updateAnalysisGraph(activeTab, algorithm, params);
+        }
+
+        // Update analysis graph based on tab and algorithm
+        function updateAnalysisGraph(tabId, algorithm, params) {
+            switch(tabId) {
+                case 'machine-learning':
+                    updateMLGraph(algorithm, params);
+                    break;
+                case 'deep-learning':
+                    updateDLGraph(algorithm, params);
+                    break;
+                case 'general':
+                    updateGeneralGraph();
+                    break;
+            }
+        }
+
+        // Machine Learning visualization
+        function updateMLGraph(algorithm = 'Random Forest', params = {}) {
+            // Generate mock results
+            const accuracy = 0.85 + Math.random() * 0.1;
+            const precision = 0.82 + Math.random() * 0.1;
+            const recall = 0.80 + Math.random() * 0.1;
+
+            // Update metrics
+            document.getElementById('ml-accuracy').textContent = accuracy.toFixed(3);
+            document.getElementById('ml-precision').textContent = precision.toFixed(3);
+            document.getElementById('ml-recall').textContent = recall.toFixed(3);
+
+            // Create confusion matrix visualization
+            const data = [{
+                type: 'heatmap',
+                z: [
+                    [Math.floor(200 * accuracy), Math.floor(200 * (1-accuracy))],
+                    [Math.floor(200 * (1-precision)), Math.floor(200 * precision)]
+                ],
+                x: ['Predicted Negative', 'Predicted Positive'],
+                y: ['Actual Negative', 'Actual Positive'],
+                colorscale: 'Viridis'
+            }];
+
+            const layout = {
+                title: 'Confusion Matrix',
+                xaxis: { side: 'bottom' },
+                yaxis: { side: 'left' },
+                annotations: [],
+                margin: { t: 50, l: 150 }
+            };
+
+            Plotly.newPlot('ml-graph', data, layout);
+        }
+
+        // Deep Learning visualization
+        function updateDLGraph(algorithm = 'Multi-layer Perceptron', params = {}) {
+            const epochs = params.epochs || 50;
+            const learningRate = params.learning_rate || 0.01;
+
+            // Generate mock training data
+            const xValues = Array.from({length: epochs}, (_, i) => i + 1);
+            const accuracyValues = xValues.map(x => {
+                const base = 0.5 + (1 - Math.exp(-learningRate * x * 0.3));
+                const noise = (Math.random() - 0.5) * 0.1;
+                return Math.min(0.98, base + noise);
+            });
+            const lossValues = xValues.map(x => {
+                const base = Math.exp(-learningRate * x * 0.3);
+                const noise = (Math.random() - 0.5) * 0.1;
+                return Math.max(0.1, base + noise);
+            });
+
+            // Update metrics
+            document.getElementById('dl-accuracy').textContent = 
+                accuracyValues[accuracyValues.length - 1].toFixed(3);
+            document.getElementById('dl-loss').textContent = 
+                lossValues[lossValues.length - 1].toFixed(3);
+
+            const data = [
+                {
+                    x: xValues,
+                    y: accuracyValues,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Accuracy',
+                    line: { color: '#ff69b4' }
+                },
+                {
+                    x: xValues,
+                    y: lossValues,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Loss',
+                    line: { color: '#4a90e2' }
+                }
+            ];
+
+            const layout = {
+                title: 'Training Progress',
+                xaxis: { title: 'Epoch' },
+                yaxis: { title: 'Value' },
+                legend: { orientation: 'h', y: -0.2 }
+            };
+
+            Plotly.newPlot('dl-graph', data, layout);
+        }
+
+        // General analysis visualization
+        function updateGeneralGraph() {
+            // Generate mock distribution data
+            const ages = Array.from({length: 100}, () => Math.floor(20 + Math.random() * 60));
+            const incomes = Array.from({length: 100}, () => Math.floor(30000 + Math.random() * 70000));
+
+            const data = [{
+                x: ages,
+                type: 'histogram',
+                name: 'Age Distribution',
+                opacity: 0.7,
+                marker: { color: '#4CAF50' }
+            }];
+
+            const layout = {
+                title: 'Customer Age Distribution',
+                xaxis: { title: 'Age' },
+                yaxis: { title: 'Count' },
+                bargap: 0.1
+            };
+
+            Plotly.newPlot('general-graph', data, layout);
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAlgorithmOptions('deep-learning');
+            updateDLGraph();
+        });
+
+        // Quantum circuit code (existing code remains the same)
         let circuit = [];
         let numQubits = 2;
 
@@ -380,98 +730,12 @@
             updateCircuit();
         }
 
-        // Initialize the circuit with a default gate
+        // Initialize with a default gate
         circuit.push({
             type: 'H',
             qubit: 0
         });
         updateCircuit();
-
-        // Tab switching functionality
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                e.preventDefault();
-                const tabId = tab.getAttribute('data-tab');
-                
-                // Update active tab
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                // Show active content
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                document.getElementById(tabId).classList.add('active');
-
-                // Update visualizations if needed
-                if (tabId === 'quantum') {
-                    updateCircuit();
-                } else if (tabId === 'deep-learning') {
-                    updateAccuracyGraph();
-                }
-            });
-        });
-
-        // Learning rate and epochs display
-        document.getElementById('learning-rate').addEventListener('input', (e) => {
-            e.target.nextElementSibling.textContent = e.target.value;
-        });
-        document.getElementById('epochs').addEventListener('input', (e) => {
-            e.target.nextElementSibling.textContent = e.target.value;
-        });
-
-        // Training accuracy visualization
-        function updateAccuracyGraph() {
-            const epochs = parseInt(document.getElementById('epochs').value);
-            const learningRate = parseFloat(document.getElementById('learning-rate').value);
-            
-            // Generate mock training data
-            const xValues = Array.from({length: epochs}, (_, i) => i + 1);
-            const yValues = xValues.map(x => {
-                const base = 0.5 + (1 - Math.exp(-learningRate * x * 0.3));
-                const noise = (Math.random() - 0.5) * 0.1;
-                return Math.min(0.98, base + noise);
-            });
-
-            const data = [{
-                x: xValues,
-                y: yValues,
-                type: 'scatter',
-                mode: 'lines',
-                line: {
-                    color: '#ff69b4',
-                    width: 2
-                },
-                name: 'Training Accuracy'
-            }];
-
-            const layout = {
-                title: 'Training Accuracy Over Time',
-                xaxis: {
-                    title: 'Epoch',
-                    gridcolor: '#eee'
-                },
-                yaxis: {
-                    title: 'Accuracy',
-                    range: [0, 1],
-                    gridcolor: '#eee'
-                },
-                plot_bgcolor: '#fff',
-                paper_bgcolor: '#fff'
-            };
-
-            Plotly.newPlot('accuracy-graph', data, layout, {
-                displayModeBar: false,
-                responsive: true
-            });
-        }
-
-        function startTraining() {
-            updateAccuracyGraph();
-        }
-
-        // Initialize the accuracy graph
-        updateAccuracyGraph();
     </script>
 </body>
 </html> 
