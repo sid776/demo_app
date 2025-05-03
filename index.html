@@ -528,6 +528,45 @@
             };
 
             Plotly.newPlot('ml-graph', data, layout);
+
+            // Add ROC curve and feature importance
+            const rocDiv = document.getElementById('ml-roc');
+            if (!rocDiv) {
+                rocDiv = document.createElement('div');
+                rocDiv.id = 'ml-roc';
+                rocDiv.className = 'graph';
+                document.getElementById('ml-graph').after(rocDiv);
+            }
+            Plotly.newPlot('ml-roc', [{x:[0,0.1,0.2,0.4,0.7,1],y:[0,0.5,0.7,0.85,0.95,1],type:'scatter',mode:'lines+markers',name:'ROC'}], {title:'ROC Curve',xaxis:{title:'FPR'},yaxis:{title:'TPR'}});
+
+            const fiDiv = document.getElementById('ml-fi');
+            if (!fiDiv) {
+                fiDiv = document.createElement('div');
+                fiDiv.id = 'ml-fi';
+                fiDiv.className = 'graph';
+                document.getElementById('ml-roc').after(fiDiv);
+            }
+            Plotly.newPlot('ml-fi', [{x:['Age','Income','Duration','Purchases'],y:[0.3,0.4,0.2,0.1],type:'bar',name:'Importance'}], {title:'Feature Importance'});
+
+            // Precision-Recall curve
+            const prDiv = document.getElementById('ml-pr');
+            if (!prDiv) {
+                prDiv = document.createElement('div');
+                prDiv.id = 'ml-pr';
+                prDiv.className = 'graph';
+                document.getElementById('ml-fi').after(prDiv);
+            }
+            Plotly.newPlot('ml-pr', [{x:[0,0.2,0.4,0.6,0.8,1],y:[1,0.95,0.9,0.7,0.5,0.2],type:'scatter',mode:'lines+markers',name:'PR'}], {title:'Precision-Recall Curve',xaxis:{title:'Recall'},yaxis:{title:'Precision'}});
+
+            // Calibration curve
+            const calDiv = document.getElementById('ml-cal');
+            if (!calDiv) {
+                calDiv = document.createElement('div');
+                calDiv.id = 'ml-cal';
+                calDiv.className = 'graph';
+                document.getElementById('ml-pr').after(calDiv);
+            }
+            Plotly.newPlot('ml-cal', [{x:[0,0.2,0.4,0.6,0.8,1],y:[0,0.15,0.35,0.65,0.85,1],type:'scatter',mode:'lines+markers',name:'Calib'}], {title:'Calibration Curve',xaxis:{title:'Mean Predicted Value'},yaxis:{title:'Fraction of Positives'}});
         }
 
         // Deep Learning visualization
@@ -581,38 +620,82 @@
             };
 
             Plotly.newPlot('dl-graph', data, layout);
+
+            // Add loss and accuracy, plus validation curve
+            const valAccuracy = xValues.map(x => accuracyValues[x-1] - Math.random()*0.05);
+            Plotly.newPlot('dl-loss-curve', [{x:xValues,y:lossValues,type:'scatter',mode:'lines',name:'Loss',line:{color:'#673ab7'}}], {title:'Training Loss',xaxis:{title:'Epoch'},yaxis:{title:'Loss'}});
+
+            // Simulated confusion matrix
+            const cmDiv = document.getElementById('dl-cm');
+            if (!cmDiv) {
+                cmDiv = document.createElement('div');
+                cmDiv.id = 'dl-cm';
+                cmDiv.className = 'graph';
+                document.getElementById('dl-loss-curve').after(cmDiv);
+            }
+            Plotly.newPlot('dl-cm', [{type:'heatmap',z:[[170,30],[25,175]],x:['Pred Neg','Pred Pos'],y:['Act Neg','Act Pos'],colorscale:'Viridis'}], {title:'Confusion Matrix'});
+
+            // Precision-Recall curve
+            const prDiv = document.getElementById('dl-pr');
+            if (!prDiv) {
+                prDiv = document.createElement('div');
+                prDiv.id = 'dl-pr';
+                prDiv.className = 'graph';
+                document.getElementById('dl-cm').after(prDiv);
+            }
+            Plotly.newPlot('dl-pr', [{x:[0,0.2,0.4,0.6,0.8,1],y:[1,0.95,0.9,0.7,0.5,0.2],type:'scatter',mode:'lines+markers',name:'PR'}], {title:'Precision-Recall Curve',xaxis:{title:'Recall'},yaxis:{title:'Precision'}});
+
+            // Learning curve
+            const lcDiv = document.getElementById('dl-lc');
+            if (!lcDiv) {
+                lcDiv = document.createElement('div');
+                lcDiv.id = 'dl-lc';
+                lcDiv.className = 'graph';
+                document.getElementById('dl-pr').after(lcDiv);
+            }
+            Plotly.newPlot('dl-lc', [{x:xValues,y:xValues.map(x=>Math.log(x+1)+(Math.random()-0.5)*0.2),type:'scatter',mode:'lines',name:'Learning Curve'}], {title:'Learning Curve',xaxis:{title:'Epoch'},yaxis:{title:'Score'}});
         }
 
         // General analysis visualization (now uses real data)
         function updateGeneralGraph() {
             if (!marketingData || marketingData.length === 0) return;
-            // Example: Age distribution
+            // Age & Income Distribution
             const ages = marketingData.map(row => parseInt(row.Age)).filter(x => !isNaN(x));
             const income = marketingData.map(row => parseInt(row.Income)).filter(x => !isNaN(x));
-            const data = [
-                {
-                    x: ages,
-                    type: 'histogram',
-                    name: 'Age Distribution',
-                    opacity: 0.7,
-                    marker: { color: '#4CAF50' }
-                },
-                {
-                    x: income,
-                    type: 'histogram',
-                    name: 'Income Distribution',
-                    opacity: 0.5,
-                    marker: { color: '#ff69b4' }
-                }
-            ];
-            const layout = {
-                title: 'Customer Age and Income Distribution',
-                xaxis: { title: 'Value' },
-                yaxis: { title: 'Count' },
-                bargap: 0.1,
-                barmode: 'overlay'
-            };
-            Plotly.newPlot('general-graph', data, layout);
+            Plotly.newPlot('general-graph', [
+                {x: ages, type: 'histogram', name: 'Age Distribution', opacity: 0.7, marker: { color: '#4CAF50' }},
+                {x: income, type: 'histogram', name: 'Income Distribution', opacity: 0.5, marker: { color: '#ff69b4' }}
+            ], {title: 'Customer Age and Income Distribution', xaxis: { title: 'Value' }, yaxis: { title: 'Count' }, bargap: 0.1, barmode: 'overlay'});
+            // Correlation heatmap
+            const corrDiv = document.getElementById('gen-corr');
+            if (!corrDiv) {
+                corrDiv = document.createElement('div');
+                corrDiv.id = 'gen-corr';
+                corrDiv.className = 'graph';
+                document.getElementById('general-graph').after(corrDiv);
+            }
+            Plotly.newPlot('gen-corr', [{z:[[1,0.5,0.2],[0.5,1,0.3],[0.2,0.3,1]],x:['Age','Income','Purchases'],y:['Age','Income','Purchases'],type:'heatmap',colorscale:'Viridis'}], {title:'Correlation Heatmap'});
+            // Boxplot of Income by Marital Status
+            const boxDiv = document.getElementById('gen-box');
+            if (!boxDiv) {
+                boxDiv = document.createElement('div');
+                boxDiv.id = 'gen-box';
+                boxDiv.className = 'graph';
+                document.getElementById('gen-corr').after(boxDiv);
+            }
+            Plotly.newPlot('gen-box', [{y:income,x:marketingData.map(row=>row.Marital_Status),type:'box',name:'Income'}], {title:'Income by Marital Status'});
+            // Pie chart of Response Rate
+            const pieDiv = document.getElementById('gen-pie');
+            if (!pieDiv) {
+                pieDiv = document.createElement('div');
+                pieDiv.id = 'gen-pie';
+                pieDiv.className = 'graph';
+                document.getElementById('gen-box').after(pieDiv);
+            }
+            const resp = marketingData.map(row=>row.Response).filter(x=>x==='1'||x==='0');
+            const resp0 = resp.filter(x=>x==='0').length;
+            const resp1 = resp.filter(x=>x==='1').length;
+            Plotly.newPlot('gen-pie', [{labels:['No','Yes'],values:[resp0,resp1],type:'pie'}], {title:'Response Rate'});
         }
 
         // Initialize the dashboard
@@ -789,26 +872,30 @@
             const container = document.getElementById('circuit-container');
             container.innerHTML = '';
             if (algo === 'Quantum Circuit') {
-                // Show circuit and measurement probability
-                container.innerHTML = '<div id="qc-circuit"></div><div id="qc-measure"></div>';
+                container.innerHTML = '<div id="qc-circuit"></div><div id="qc-measure"></div><div id="qc-state"></div>';
                 updateCircuit('qc-circuit');
                 plotQuantumMeasurement('qc-measure');
+                plotQuantumStateProb('qc-state');
             } else if (algo === 'Quantum Kernel') {
-                container.innerHTML = '<div id="qc-kernel"></div><div id="qc-bloch"></div>';
+                container.innerHTML = '<div id="qc-kernel"></div><div id="qc-bloch"></div><div id="qc-fidelity"></div>';
                 plotQuantumKernel('qc-kernel');
                 plotBlochSphere('qc-bloch');
+                plotQuantumFidelity('qc-fidelity');
             } else if (algo === 'Variational Quantum Classifier') {
-                container.innerHTML = '<div id="qc-vqc"></div><div id="qc-loss"></div>';
+                container.innerHTML = '<div id="qc-vqc"></div><div id="qc-loss"></div><div id="qc-depth"></div>';
                 plotVQC('qc-vqc');
                 plotVQCLoss('qc-loss');
+                plotQuantumDepth('qc-depth');
             } else if (algo === 'Quantum Feature Map') {
-                container.innerHTML = '<div id="qc-feature"></div><div id="qc-bloch"></div>';
+                container.innerHTML = '<div id="qc-feature"></div><div id="qc-bloch"></div><div id="qc-state"></div>';
                 plotQuantumFeatureMap('qc-feature');
                 plotBlochSphere('qc-bloch');
+                plotQuantumStateProb('qc-state');
             } else if (algo === 'Quantum Ensemble') {
-                container.innerHTML = '<div id="qc-ensemble"></div><div id="qc-measure"></div>';
+                container.innerHTML = '<div id="qc-ensemble"></div><div id="qc-measure"></div><div id="qc-depth"></div>';
                 plotQuantumEnsemble('qc-ensemble');
                 plotQuantumMeasurement('qc-measure');
+                plotQuantumDepth('qc-depth');
             }
         }
 
@@ -869,6 +956,21 @@
             const y = x.map(() => Math.random());
             Plotly.newPlot(id, [{x, y, type:'bar', name:'Ensemble'}], {title:'Quantum Ensemble Outputs'});
         }
+        function plotQuantumStateProb(id) {
+            // Simulate quantum state probability distribution
+            const data = [{x:['|00⟩','|01⟩','|10⟩','|11⟩'],y:[Math.random(),Math.random(),Math.random(),Math.random()],type:'bar',marker:{color:'#673ab7'}}];
+            Plotly.newPlot(id, data, {title:'Quantum State Probability'});
+        }
+        function plotQuantumFidelity(id) {
+            // Simulate quantum fidelity/overlap
+            const data = [{x:[0,1,2,3,4,5],y:[1,0.9,0.8,0.7,0.6,0.5].map(v=>v+Math.random()*0.1),type:'scatter',mode:'lines+markers',name:'Fidelity'}];
+            Plotly.newPlot(id, data, {title:'Quantum Fidelity'});
+        }
+        function plotQuantumDepth(id) {
+            // Simulate quantum circuit depth/complexity
+            const data = [{x:['Depth'],y:[Math.floor(Math.random()*10+3)],type:'bar',marker:{color:'#00bcd4'}}];
+            Plotly.newPlot(id, data, {title:'Quantum Circuit Depth'});
+        }
 
         // --- ML/DL: Multiple Graphs ---
         function updateMLGraph(algorithm = 'Random Forest', params = {}) {
@@ -890,6 +992,14 @@
             let fiDiv = document.getElementById('ml-fi');
             if (!fiDiv) {fiDiv = document.createElement('div');fiDiv.id='ml-fi';fiDiv.className='graph';document.getElementById('ml-roc').after(fiDiv);}
             Plotly.newPlot('ml-fi', [{x:['Age','Income','Duration','Purchases'],y:[0.3,0.4,0.2,0.1],type:'bar',name:'Importance'}], {title:'Feature Importance'});
+            // Precision-Recall curve
+            let prDiv = document.getElementById('ml-pr');
+            if (!prDiv) {prDiv = document.createElement('div');prDiv.id='ml-pr';prDiv.className='graph';document.getElementById('ml-fi').after(prDiv);}
+            Plotly.newPlot('ml-pr', [{x:[0,0.2,0.4,0.6,0.8,1],y:[1,0.95,0.9,0.7,0.5,0.2],type:'scatter',mode:'lines+markers',name:'PR'}], {title:'Precision-Recall Curve',xaxis:{title:'Recall'},yaxis:{title:'Precision'}});
+            // Calibration curve
+            let calDiv = document.getElementById('ml-cal');
+            if (!calDiv) {calDiv = document.createElement('div');calDiv.id='ml-cal';calDiv.className='graph';document.getElementById('ml-pr').after(calDiv);}
+            Plotly.newPlot('ml-cal', [{x:[0,0.2,0.4,0.6,0.8,1],y:[0,0.15,0.35,0.65,0.85,1],type:'scatter',mode:'lines+markers',name:'Calib'}], {title:'Calibration Curve',xaxis:{title:'Mean Predicted Value'},yaxis:{title:'Fraction of Positives'}});
         }
         function updateDLGraph(algorithm = 'Multi-layer Perceptron', params = {}) {
             // ... existing training/validation curves ...
@@ -915,6 +1025,14 @@
             let cmDiv = document.getElementById('dl-cm');
             if (!cmDiv) {cmDiv = document.createElement('div');cmDiv.id='dl-cm';cmDiv.className='graph';document.getElementById('dl-loss-curve').after(cmDiv);}
             Plotly.newPlot('dl-cm', [{type:'heatmap',z:[[170,30],[25,175]],x:['Pred Neg','Pred Pos'],y:['Act Neg','Act Pos'],colorscale:'Viridis'}], {title:'Confusion Matrix'});
+            // Precision-Recall curve
+            let prDiv = document.getElementById('dl-pr');
+            if (!prDiv) {prDiv = document.createElement('div');prDiv.id='dl-pr';prDiv.className='graph';document.getElementById('dl-cm').after(prDiv);}
+            Plotly.newPlot('dl-pr', [{x:[0,0.2,0.4,0.6,0.8,1],y:[1,0.95,0.9,0.7,0.5,0.2],type:'scatter',mode:'lines+markers',name:'PR'}], {title:'Precision-Recall Curve',xaxis:{title:'Recall'},yaxis:{title:'Precision'}});
+            // Learning curve
+            let lcDiv = document.getElementById('dl-lc');
+            if (!lcDiv) {lcDiv = document.createElement('div');lcDiv.id='dl-lc';lcDiv.className='graph';document.getElementById('dl-pr').after(lcDiv);}
+            Plotly.newPlot('dl-lc', [{x:xValues,y:xValues.map(x=>Math.log(x+1)+(Math.random()-0.5)*0.2),type:'scatter',mode:'lines',name:'Learning Curve'}], {title:'Learning Curve',xaxis:{title:'Epoch'},yaxis:{title:'Score'}});
         }
 
         // --- Hook up quantum dropdown ---
