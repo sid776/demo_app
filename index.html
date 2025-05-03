@@ -673,6 +673,24 @@
                 document.getElementById('dl-pr').after(lcDiv);
             }
             Plotly.newPlot('dl-lc', [{x:xValues,y:xValues.map(x=>Math.log(x+1)+(Math.random()-0.5)*0.2),type:'scatter',mode:'lines',name:'Learning Curve'}], {title:'Learning Curve',xaxis:{title:'Epoch'},yaxis:{title:'Score'}});
+
+            // Explanations for each graph
+            let dlGraph = document.getElementById('dl-graph');
+            let dlExp = document.getElementById('dl-exp');
+            if (!dlExp) { dlExp = document.createElement('div'); dlExp.id = 'dl-exp'; dlGraph.after(dlExp); }
+            dlExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>These lines show how well the deep learning model is learning to predict which customers will respond to a campaign. Higher lines mean better learning.</p>`;
+            let lossExp = document.getElementById('dl-loss-exp');
+            if (!lossExp) { lossExp = document.createElement('div'); lossExp.id = 'dl-loss-exp'; document.getElementById('dl-loss-curve').after(lossExp); }
+            lossExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This line shows how much the model's mistakes decrease as it learns. Lower is better.</p>`;
+            let cmExp = document.getElementById('dl-cm-exp');
+            if (!cmExp) { cmExp = document.createElement('div'); cmExp.id = 'dl-cm-exp'; document.getElementById('dl-cm').after(cmExp); }
+            cmExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This table shows how many customers the deep learning model predicted correctly and incorrectly. More numbers on the diagonal means better predictions.</p>`;
+            let prExp = document.getElementById('dl-pr-exp');
+            if (!prExp) { prExp = document.createElement('div'); prExp.id = 'dl-pr-exp'; document.getElementById('dl-pr').after(prExp); }
+            prExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This curve shows how well the model finds true responders without too many false alarms.</p>`;
+            let lcExp = document.getElementById('dl-lc-exp');
+            if (!lcExp) { lcExp = document.createElement('div'); lcExp.id = 'dl-lc-exp'; document.getElementById('dl-lc').after(lcExp); }
+            lcExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This line shows how the model's performance improves as it sees more data. Upward trends mean the model is learning.</p>`;
         }
 
         // General analysis visualization (now uses real data)
@@ -922,6 +940,15 @@
                 updateCircuit('qc-circuit');
                 plotQuantumMeasurement('qc-measure');
                 plotQuantumStateProb('qc-state');
+                let qcExp = document.getElementById('qc-circuit-exp');
+                if (!qcExp) { qcExp = document.createElement('div'); qcExp.id = 'qc-circuit-exp'; document.getElementById('qc-circuit').after(qcExp); }
+                qcExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This diagram shows a simulated quantum process for analyzing customer data. It helps us see how quantum computers might find patterns in marketing.</p>`;
+                let qmExp = document.getElementById('qc-measure-exp');
+                if (!qmExp) { qmExp = document.createElement('div'); qmExp.id = 'qc-measure-exp'; document.getElementById('qc-measure').after(qmExp); }
+                qmExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This bar chart shows the chance of different outcomes from the quantum analysis. Higher bars mean more likely results.</p>`;
+                let qsExp = document.getElementById('qc-state-exp');
+                if (!qsExp) { qsExp = document.createElement('div'); qsExp.id = 'qc-state-exp'; document.getElementById('qc-state').after(qsExp); }
+                qsExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This chart shows the probability of the quantum system being in each possible state. It helps us understand the uncertainty in the analysis.</p>`;
             } else if (algo === 'Quantum Kernel') {
                 container.innerHTML = '<div id="qc-kernel"></div><div id="qc-bloch"></div><div id="qc-fidelity"></div>';
                 plotQuantumKernel('qc-kernel');
