@@ -346,12 +346,16 @@
             // Add more algorithm parameters as needed
         };
 
-        // Sample marketing campaign data (we'll load this from a CSV in production)
-        const marketingData = {
-            features: ['age', 'income', 'campaign_duration', 'previous_purchases'],
-            target: 'conversion',
-            samples: 1000
-        };
+        // Load and parse the real marketing dataset
+        let marketingData = [];
+        Papa.parse('public/marketing_campaign2.csv', {
+            download: true,
+            header: true,
+            complete: function(results) {
+                marketingData = results.data;
+                updateGeneralGraph();
+            }
+        });
 
         // Tab switching functionality
         document.querySelectorAll('.tab').forEach(tab => {
@@ -545,28 +549,47 @@
             Plotly.newPlot('dl-graph', data, layout);
         }
 
-        // General analysis visualization
+        // General analysis visualization (now uses real data)
         function updateGeneralGraph() {
-            // Generate mock distribution data
-            const ages = Array.from({length: 100}, () => Math.floor(20 + Math.random() * 60));
-            const incomes = Array.from({length: 100}, () => Math.floor(30000 + Math.random() * 70000));
-
-            const data = [{
-                x: ages,
-                type: 'histogram',
-                name: 'Age Distribution',
-                opacity: 0.7,
-                marker: { color: '#4CAF50' }
-            }];
-
+            if (!marketingData || marketingData.length === 0) return;
+            // Example: Age distribution
+            const ages = marketingData.map(row => parseInt(row.Age)).filter(x => !isNaN(x));
+            const income = marketingData.map(row => parseInt(row.Income)).filter(x => !isNaN(x));
+            const data = [
+                {
+                    x: ages,
+                    type: 'histogram',
+                    name: 'Age Distribution',
+                    opacity: 0.7,
+                    marker: { color: '#4CAF50' }
+                },
+                {
+                    x: income,
+                    type: 'histogram',
+                    name: 'Income Distribution',
+                    opacity: 0.5,
+                    marker: { color: '#ff69b4' }
+                }
+            ];
             const layout = {
-                title: 'Customer Age Distribution',
-                xaxis: { title: 'Age' },
+                title: 'Customer Age and Income Distribution',
+                xaxis: { title: 'Value' },
                 yaxis: { title: 'Count' },
-                bargap: 0.1
+                bargap: 0.1,
+                barmode: 'overlay'
             };
-
             Plotly.newPlot('general-graph', data, layout);
+            // Show a sample of the data
+            let sampleHtml = '<h3>Sample Data</h3><table border="1" style="width:100%;font-size:12px;"><tr>';
+            Object.keys(marketingData[0]).slice(0, 8).forEach(col => sampleHtml += `<th>${col}</th>`);
+            sampleHtml += '</tr>';
+            marketingData.slice(0, 5).forEach(row => {
+                sampleHtml += '<tr>';
+                Object.values(row).slice(0, 8).forEach(val => sampleHtml += `<td>${val}</td>`);
+                sampleHtml += '</tr>';
+            });
+            sampleHtml += '</table>';
+            document.getElementById('general-graph').insertAdjacentHTML('beforebegin', sampleHtml);
         }
 
         // Initialize the dashboard
