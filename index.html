@@ -572,8 +572,12 @@
             // Explanations for each graph
             let mlGraph = document.getElementById('ml-graph');
             let mlExp = document.getElementById('ml-exp');
-            if (!mlExp) { mlExp = document.createElement('div'); mlExp.id = 'ml-exp'; mlGraph.after(mlExp); }
-            mlExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This table shows how well the model predicts which customers will respond to a campaign. The diagonal numbers are correct predictions; off-diagonal are mistakes.</p>`;
+            if (!mlExp) {
+                mlExp = document.createElement('div');
+                mlExp.id = 'ml-exp';
+                mlGraph.parentNode.insertBefore(mlExp, mlGraph.nextSibling);
+            }
+            mlExp.innerHTML = "<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This table shows how well the model predicts which customers will respond to a campaign. The diagonal numbers are correct predictions; off-diagonal are mistakes.</p>";
             let rocExp = document.getElementById('ml-roc-exp');
             if (!rocExp) { rocExp = document.createElement('div'); rocExp.id = 'ml-roc-exp'; document.getElementById('ml-roc').after(rocExp); }
             rocExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This curve shows how well the model separates responders from non-responders. Higher curves mean better targeting.</p>`;
