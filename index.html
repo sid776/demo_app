@@ -530,6 +530,16 @@
 
             Plotly.newPlot('ml-graph', data, layout);
 
+            // Always remove any old explanation
+            let oldExp = document.getElementById('ml-exp');
+            if (oldExp) oldExp.remove();
+            // Insert the explanation right after the graph
+            let mlGraph = document.getElementById('ml-graph');
+            let mlExp = document.createElement('div');
+            mlExp.id = 'ml-exp';
+            mlExp.innerHTML = "<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This table shows how well the model predicts which customers will respond to a campaign. The diagonal numbers are correct predictions; off-diagonal are mistakes.</p>";
+            mlGraph.parentNode.insertBefore(mlExp, mlGraph.nextSibling);
+
             // Add ROC curve and feature importance
             const rocDiv = document.getElementById('ml-roc');
             if (!rocDiv) {
@@ -568,28 +578,6 @@
                 document.getElementById('ml-pr').after(calDiv);
             }
             Plotly.newPlot('ml-cal', [{x:[0,0.2,0.4,0.6,0.8,1],y:[0,0.15,0.35,0.65,0.85,1],type:'scatter',mode:'lines+markers',name:'Calib'}], {title:'Calibration Curve',xaxis:{title:'Mean Predicted Value'},yaxis:{title:'Fraction of Positives'}});
-
-            // Explanations for each graph
-            let mlGraph = document.getElementById('ml-graph');
-            let mlExp = document.getElementById('ml-exp');
-            if (!mlExp) {
-                mlExp = document.createElement('div');
-                mlExp.id = 'ml-exp';
-                mlGraph.parentNode.insertBefore(mlExp, mlGraph.nextSibling);
-            }
-            mlExp.innerHTML = "<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This table shows how well the model predicts which customers will respond to a campaign. The diagonal numbers are correct predictions; off-diagonal are mistakes.</p>";
-            let rocExp = document.getElementById('ml-roc-exp');
-            if (!rocExp) { rocExp = document.createElement('div'); rocExp.id = 'ml-roc-exp'; document.getElementById('ml-roc').after(rocExp); }
-            rocExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This curve shows how well the model separates responders from non-responders. Higher curves mean better targeting.</p>`;
-            let fiExp = document.getElementById('ml-fi-exp');
-            if (!fiExp) { fiExp = document.createElement('div'); fiExp.id = 'ml-fi-exp'; document.getElementById('ml-fi').after(fiExp); }
-            fiExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This chart shows which customer features (like age or income) are most important for predicting campaign success.</p>`;
-            let prExp = document.getElementById('ml-pr-exp');
-            if (!prExp) { prExp = document.createElement('div'); prExp.id = 'ml-pr-exp'; document.getElementById('ml-pr').after(prExp); }
-            prExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This curve shows how well the model finds true responders without too many false alarms.</p>`;
-            let calExp = document.getElementById('ml-cal-exp');
-            if (!calExp) { calExp = document.createElement('div'); calExp.id = 'ml-cal-exp'; document.getElementById('ml-cal').after(calExp); }
-            calExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This chart checks if the model's confidence matches reality. A perfect model would follow the diagonal line.</p>`;
         }
 
         // Deep Learning visualization
@@ -677,24 +665,6 @@
                 document.getElementById('dl-pr').after(lcDiv);
             }
             Plotly.newPlot('dl-lc', [{x:xValues,y:xValues.map(x=>Math.log(x+1)+(Math.random()-0.5)*0.2),type:'scatter',mode:'lines',name:'Learning Curve'}], {title:'Learning Curve',xaxis:{title:'Epoch'},yaxis:{title:'Score'}});
-
-            // Explanations for each graph
-            let dlGraph = document.getElementById('dl-graph');
-            let dlExp = document.getElementById('dl-exp');
-            if (!dlExp) { dlExp = document.createElement('div'); dlExp.id = 'dl-exp'; dlGraph.after(dlExp); }
-            dlExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>These lines show how well the deep learning model is learning to predict which customers will respond to a campaign. Higher lines mean better learning.</p>`;
-            let lossExp = document.getElementById('dl-loss-exp');
-            if (!lossExp) { lossExp = document.createElement('div'); lossExp.id = 'dl-loss-exp'; document.getElementById('dl-loss-curve').after(lossExp); }
-            lossExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This line shows how much the model's mistakes decrease as it learns. Lower is better.</p>`;
-            let cmExp = document.getElementById('dl-cm-exp');
-            if (!cmExp) { cmExp = document.createElement('div'); cmExp.id = 'dl-cm-exp'; document.getElementById('dl-cm').after(cmExp); }
-            cmExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This table shows how many customers the deep learning model predicted correctly and incorrectly. More numbers on the diagonal means better predictions.</p>`;
-            let prExp = document.getElementById('dl-pr-exp');
-            if (!prExp) { prExp = document.createElement('div'); prExp.id = 'dl-pr-exp'; document.getElementById('dl-pr').after(prExp); }
-            prExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This curve shows how well the model finds true responders without too many false alarms.</p>`;
-            let lcExp = document.getElementById('dl-lc-exp');
-            if (!lcExp) { lcExp = document.createElement('div'); lcExp.id = 'dl-lc-exp'; document.getElementById('dl-lc').after(lcExp); }
-            lcExp.innerHTML = `<p style='margin:8px 0 24px 0;color:#555;font-size:15px;'>This line shows how the model's performance improves as it sees more data. Upward trends mean the model is learning.</p>`;
         }
 
         // General analysis visualization (now uses real data)
