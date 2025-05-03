@@ -268,8 +268,41 @@
             <!-- README Tab -->
             <div id="readme" class="tab-content">
                 <h2>Marketing Campaign Analysis Dashboard</h2>
-                <p>This dashboard provides comprehensive analysis tools for marketing campaign data using various techniques:</p>
-                <h3>Features:</h3>
+                <h3>About the Dataset</h3>
+                <p>This dashboard uses the <b>marketing_campaign2.csv</b> dataset, which contains information about customers and their responses to marketing campaigns. <br>
+                <b>Source:</b> UCI Machine Learning Repository / Kaggle<br>
+                <b>Columns:</b> Age, Income, Marital_Status, Education, Kidhome, Teenhome, Recency, MntWines, MntFruits, MntMeatProducts, MntFishProducts, MntSweetProducts, MntGoldProds, NumDealsPurchases, NumWebPurchases, NumCatalogPurchases, NumStorePurchases, NumWebVisitsMonth, Response, etc.</p>
+                <h4>Sample Data</h4>
+                <div id="readme-sample"></div>
+                <h3>How to Use This Dashboard</h3>
+                <ul>
+                    <li>Switch between tabs to explore Machine Learning, Deep Learning, and Quantum Computing analyses.</li>
+                    <li>Choose an algorithm/technique from the dropdown to see relevant graphs and metrics.</li>
+                    <li>Adjust parameters in the sidebar and click "Run Analysis" to update the results.</li>
+                </ul>
+                <h3>Explanations of Calculations & Visualizations</h3>
+                <ul>
+                    <li><b>Confusion Matrix:</b> Shows the number of correct/incorrect predictions for each class.</li>
+                    <li><b>ROC Curve:</b> Plots True Positive Rate vs. False Positive Rate for different thresholds.</li>
+                    <li><b>Feature Importance:</b> Shows which features are most influential in the model.</li>
+                    <li><b>Training/Validation Curves:</b> Show how accuracy/loss changes over epochs.</li>
+                    <li><b>Quantum Circuit:</b> Visualizes a quantum circuit with gates and qubits.</li>
+                    <li><b>Bloch Sphere:</b> Represents the state of a single qubit on a sphere.</li>
+                    <li><b>Quantum Kernel:</b> Measures similarity between quantum states.</li>
+                    <li><b>VQC Output/Loss:</b> Simulates a variational quantum classifier's output and training loss.</li>
+                    <li><b>Quantum Feature Map:</b> Shows how classical data is mapped to quantum states.</li>
+                    <li><b>Quantum Ensemble:</b> Simulates outputs from multiple quantum models.</li>
+                </ul>
+                <h3>Quantum Computing Primer</h3>
+                <p>Quantum computing uses quantum bits (qubits) that can be in superpositions of 0 and 1. Quantum gates manipulate qubits, and measurements extract classical information. This dashboard simulates quantum circuits, kernels, classifiers, and more. <br>
+                <b>Quantum Circuit:</b> A sequence of quantum gates applied to qubits.<br>
+                <b>Bloch Sphere:</b> A geometric representation of a qubit's state.<br>
+                <b>Quantum Kernel:</b> Measures similarity between quantum states.<br>
+                <b>VQC:</b> A quantum model trained to classify data.<br>
+                <b>Feature Map:</b> Encodes classical data into quantum states.<br>
+                <b>Ensemble:</b> Combines outputs from multiple quantum models.<br>
+                </p>
+                <h3>Features</h3>
                 <ul>
                     <li>Machine Learning Analysis:
                         <ul>
@@ -354,6 +387,7 @@
             complete: function(results) {
                 marketingData = results.data;
                 updateGeneralGraph();
+                renderReadmeSample();
             }
         });
 
@@ -579,17 +613,6 @@
                 barmode: 'overlay'
             };
             Plotly.newPlot('general-graph', data, layout);
-            // Show a sample of the data
-            let sampleHtml = '<h3>Sample Data</h3><table border="1" style="width:100%;font-size:12px;"><tr>';
-            Object.keys(marketingData[0]).slice(0, 8).forEach(col => sampleHtml += `<th>${col}</th>`);
-            sampleHtml += '</tr>';
-            marketingData.slice(0, 5).forEach(row => {
-                sampleHtml += '<tr>';
-                Object.values(row).slice(0, 8).forEach(val => sampleHtml += `<td>${val}</td>`);
-                sampleHtml += '</tr>';
-            });
-            sampleHtml += '</table>';
-            document.getElementById('general-graph').insertAdjacentHTML('beforebegin', sampleHtml);
         }
 
         // Initialize the dashboard
@@ -903,6 +926,21 @@
         document.querySelector('.tab.quantum').addEventListener('click', function() {
             setTimeout(updateQuantumVisuals, 100);
         });
+
+        // In script, move sample data rendering to README
+        function renderReadmeSample() {
+            if (!marketingData || marketingData.length === 0) return;
+            let sampleHtml = '<table border="1" style="width:100%;font-size:12px;"><tr>';
+            Object.keys(marketingData[0]).slice(0, 8).forEach(col => sampleHtml += `<th>${col}</th>`);
+            sampleHtml += '</tr>';
+            marketingData.slice(0, 5).forEach(row => {
+                sampleHtml += '<tr>';
+                Object.values(row).slice(0, 8).forEach(val => sampleHtml += `<td>${val}</td>`);
+                sampleHtml += '</tr>';
+            });
+            sampleHtml += '</table>';
+            document.getElementById('readme-sample').innerHTML = sampleHtml;
+        }
     </script>
 </body>
 </html> 
