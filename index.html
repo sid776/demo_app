@@ -667,35 +667,54 @@
                 {x: income, type: 'histogram', name: 'Income Distribution', opacity: 0.5, marker: { color: '#ff69b4' }}
             ], {title: 'Customer Age and Income Distribution', xaxis: { title: 'Value' }, yaxis: { title: 'Count' }, bargap: 0.1, barmode: 'overlay'});
             // Correlation heatmap
-            const corrDiv = document.getElementById('gen-corr');
-            if (!corrDiv) {
-                corrDiv = document.createElement('div');
-                corrDiv.id = 'gen-corr';
-                corrDiv.className = 'graph';
-                document.getElementById('general-graph').after(corrDiv);
-            }
+            let corrDiv = document.getElementById('gen-corr');
+            if (!corrDiv) {corrDiv = document.createElement('div');corrDiv.id = 'gen-corr';corrDiv.className = 'graph';document.getElementById('general-graph').after(corrDiv);}
             Plotly.newPlot('gen-corr', [{z:[[1,0.5,0.2],[0.5,1,0.3],[0.2,0.3,1]],x:['Age','Income','Purchases'],y:['Age','Income','Purchases'],type:'heatmap',colorscale:'Viridis'}], {title:'Correlation Heatmap'});
             // Boxplot of Income by Marital Status
-            const boxDiv = document.getElementById('gen-box');
-            if (!boxDiv) {
-                boxDiv = document.createElement('div');
-                boxDiv.id = 'gen-box';
-                boxDiv.className = 'graph';
-                document.getElementById('gen-corr').after(boxDiv);
-            }
+            let boxDiv = document.getElementById('gen-box');
+            if (!boxDiv) {boxDiv = document.createElement('div');boxDiv.id = 'gen-box';boxDiv.className = 'graph';document.getElementById('gen-corr').after(boxDiv);}
             Plotly.newPlot('gen-box', [{y:income,x:marketingData.map(row=>row.Marital_Status),type:'box',name:'Income'}], {title:'Income by Marital Status'});
             // Pie chart of Response Rate
-            const pieDiv = document.getElementById('gen-pie');
-            if (!pieDiv) {
-                pieDiv = document.createElement('div');
-                pieDiv.id = 'gen-pie';
-                pieDiv.className = 'graph';
-                document.getElementById('gen-box').after(pieDiv);
-            }
+            let pieDiv = document.getElementById('gen-pie');
+            if (!pieDiv) {pieDiv = document.createElement('div');pieDiv.id = 'gen-pie';pieDiv.className = 'graph';document.getElementById('gen-box').after(pieDiv);}
             const resp = marketingData.map(row=>row.Response).filter(x=>x==='1'||x==='0');
             const resp0 = resp.filter(x=>x==='0').length;
             const resp1 = resp.filter(x=>x==='1').length;
             Plotly.newPlot('gen-pie', [{labels:['No','Yes'],values:[resp0,resp1],type:'pie'}], {title:'Response Rate'});
+            // Scatter plot: Age vs. Income colored by Response
+            let scatterDiv = document.getElementById('gen-scatter');
+            if (!scatterDiv) {scatterDiv = document.createElement('div');scatterDiv.id = 'gen-scatter';scatterDiv.className = 'graph';document.getElementById('gen-pie').after(scatterDiv);}
+            const scatterX = marketingData.map(row => parseInt(row.Age));
+            const scatterY = marketingData.map(row => parseInt(row.Income));
+            const scatterColor = marketingData.map(row => row.Response === '1' ? '#00bcd4' : '#ff69b4');
+            Plotly.newPlot('gen-scatter', [{x: scatterX, y: scatterY, mode: 'markers', type: 'scatter', marker: {color: scatterColor}, text: marketingData.map(row => 'Response: ' + row.Response)}], {title: 'Age vs. Income (colored by Response)', xaxis: {title: 'Age'}, yaxis: {title: 'Income'}});
+            // Violin plot: Income by Marital Status
+            let violinDiv = document.getElementById('gen-violin');
+            if (!violinDiv) {violinDiv = document.createElement('div');violinDiv.id = 'gen-violin';violinDiv.className = 'graph';document.getElementById('gen-scatter').after(violinDiv);}
+            const maritalStatuses = [...new Set(marketingData.map(row => row.Marital_Status))];
+            const violinData = maritalStatuses.map(status => ({
+                type: 'violin',
+                y: marketingData.filter(row => row.Marital_Status === status).map(row => parseInt(row.Income)).filter(x => !isNaN(x)),
+                name: status,
+                box: {visible: true},
+                line: {color: '#673ab7'},
+                meanline: {visible: true}
+            }));
+            Plotly.newPlot('gen-violin', violinData, {title: 'Income by Marital Status (Violin Plot)', yaxis: {title: 'Income'}});
+            // Summary table: mean, median, std for Age and Income
+            let summaryDiv = document.getElementById('gen-summary');
+            if (!summaryDiv) {summaryDiv = document.createElement('div');summaryDiv.id = 'gen-summary';summaryDiv.className = 'graph';document.getElementById('gen-violin').after(summaryDiv);}
+            function stat(arr, fn) { return fn(arr).toFixed(2); }
+            function mean(arr) { return arr.reduce((a,b)=>a+b,0)/arr.length; }
+            function median(arr) { const s = [...arr].sort((a,b)=>a-b); const m = Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+            function std(arr) { const m = mean(arr); return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length); }
+            summaryDiv.innerHTML = `<h4>Summary Statistics</h4><table border='1' style='width:100%;font-size:14px;'><tr><th></th><th>Mean</th><th>Median</th><th>Std</th></tr><tr><td>Age</td><td>${stat(ages,mean)}</td><td>${stat(ages,median)}</td><td>${stat(ages,std)}</td></tr><tr><td>Income</td><td>${stat(income,mean)}</td><td>${stat(income,median)}</td><td>${stat(income,std)}</td></tr></table>`;
+            // Missing value heatmap
+            let missDiv = document.getElementById('gen-missing');
+            if (!missDiv) {missDiv = document.createElement('div');missDiv.id = 'gen-missing';missDiv.className = 'graph';document.getElementById('gen-summary').after(missDiv);}
+            const cols = Object.keys(marketingData[0]);
+            const missZ = marketingData.slice(0, 100).map(row => cols.map(col => (row[col] === '' || row[col] == null) ? 1 : 0));
+            Plotly.newPlot('gen-missing', [{z: missZ, x: cols, y: Array.from({length: missZ.length}, (_, i) => i+1), type: 'heatmap', colorscale: [[0, '#fff'], [1, '#ff69b4']]}], {title: 'Missing Value Heatmap', xaxis: {title: 'Columns'}, yaxis: {title: 'Rows (first 100)'}});
         }
 
         // Initialize the dashboard
