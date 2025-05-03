@@ -378,7 +378,7 @@
 
                 // Update visualizations if needed
                 if (tabId === 'quantum') {
-                    updateCircuit();
+                    updateQuantumVisuals();
                 } else {
                     updateAnalysisGraph(tabId);
                 }
@@ -759,6 +759,150 @@
             qubit: 0
         });
         updateCircuit();
+
+        // --- Quantum Visualizations ---
+        function updateQuantumVisuals() {
+            const algo = document.getElementById('algorithm').value;
+            const container = document.getElementById('circuit-container');
+            container.innerHTML = '';
+            if (algo === 'Quantum Circuit') {
+                // Show circuit and measurement probability
+                container.innerHTML = '<div id="qc-circuit"></div><div id="qc-measure"></div>';
+                updateCircuit('qc-circuit');
+                plotQuantumMeasurement('qc-measure');
+            } else if (algo === 'Quantum Kernel') {
+                container.innerHTML = '<div id="qc-kernel"></div><div id="qc-bloch"></div>';
+                plotQuantumKernel('qc-kernel');
+                plotBlochSphere('qc-bloch');
+            } else if (algo === 'Variational Quantum Classifier') {
+                container.innerHTML = '<div id="qc-vqc"></div><div id="qc-loss"></div>';
+                plotVQC('qc-vqc');
+                plotVQCLoss('qc-loss');
+            } else if (algo === 'Quantum Feature Map') {
+                container.innerHTML = '<div id="qc-feature"></div><div id="qc-bloch"></div>';
+                plotQuantumFeatureMap('qc-feature');
+                plotBlochSphere('qc-bloch');
+            } else if (algo === 'Quantum Ensemble') {
+                container.innerHTML = '<div id="qc-ensemble"></div><div id="qc-measure"></div>';
+                plotQuantumEnsemble('qc-ensemble');
+                plotQuantumMeasurement('qc-measure');
+            }
+        }
+
+        function plotQuantumMeasurement(id) {
+            // Simulate measurement probabilities
+            const data = [{
+                x: ['|0⟩', '|1⟩'],
+                y: [Math.random(), Math.random()],
+                type: 'bar',
+                marker: { color: ['#00bcd4', '#ff69b4'] }
+            }];
+            Plotly.newPlot(id, data, {title: 'Measurement Probabilities'});
+        }
+        function plotBlochSphere(id) {
+            // Simulate a Bloch sphere projection (2D)
+            const theta = Math.random() * Math.PI;
+            const phi = Math.random() * 2 * Math.PI;
+            const x = Math.sin(theta) * Math.cos(phi);
+            const y = Math.sin(theta) * Math.sin(phi);
+            const z = Math.cos(theta);
+            const data = [{
+                type: 'scatter3d',
+                mode: 'markers',
+                x: [x], y: [y], z: [z],
+                marker: { size: 8, color: '#00bcd4' }
+            }];
+            Plotly.newPlot(id, data, {title: 'Bloch Sphere (projection)', scene: {xaxis:{range:[-1,1]},yaxis:{range:[-1,1]},zaxis:{range:[-1,1]}}});
+        }
+        function plotQuantumKernel(id) {
+            // Simulate a kernel matrix
+            const z = [
+                [1, Math.random()],
+                [Math.random(), 1]
+            ];
+            Plotly.newPlot(id, [{z, type:'heatmap', colorscale:'Viridis'}], {title:'Quantum Kernel Matrix'});
+        }
+        function plotVQC(id) {
+            // Simulate VQC decision boundary
+            const x = Array.from({length: 50}, (_, i) => i/10);
+            const y = x.map(v => Math.sin(v) + Math.random()*0.2);
+            Plotly.newPlot(id, [{x, y, type:'scatter', mode:'lines', name:'VQC Output'}], {title:'VQC Output'});
+        }
+        function plotVQCLoss(id) {
+            // Simulate VQC loss curve
+            const x = Array.from({length: 30}, (_, i) => i+1);
+            const y = x.map(i => Math.exp(-i/10) + Math.random()*0.05);
+            Plotly.newPlot(id, [{x, y, type:'scatter', mode:'lines', name:'Loss'}], {title:'VQC Training Loss'});
+        }
+        function plotQuantumFeatureMap(id) {
+            // Simulate feature map
+            const x = Array.from({length: 20}, (_, i) => i);
+            const y = x.map(i => Math.cos(i/3) + Math.random()*0.1);
+            Plotly.newPlot(id, [{x, y, type:'scatter', mode:'markers', name:'Feature Map'}], {title:'Quantum Feature Map'});
+        }
+        function plotQuantumEnsemble(id) {
+            // Simulate ensemble output
+            const x = ['Model 1', 'Model 2', 'Model 3'];
+            const y = x.map(() => Math.random());
+            Plotly.newPlot(id, [{x, y, type:'bar', name:'Ensemble'}], {title:'Quantum Ensemble Outputs'});
+        }
+
+        // --- ML/DL: Multiple Graphs ---
+        function updateMLGraph(algorithm = 'Random Forest', params = {}) {
+            // ... existing confusion matrix ...
+            // Add ROC curve and feature importance
+            const accuracy = 0.85 + Math.random() * 0.1;
+            const precision = 0.82 + Math.random() * 0.1;
+            const recall = 0.80 + Math.random() * 0.1;
+            document.getElementById('ml-accuracy').textContent = accuracy.toFixed(3);
+            document.getElementById('ml-precision').textContent = precision.toFixed(3);
+            document.getElementById('ml-recall').textContent = recall.toFixed(3);
+            // Confusion matrix
+            Plotly.newPlot('ml-graph', [{type:'heatmap',z:[[180,20],[30,170]],x:['Pred Neg','Pred Pos'],y:['Act Neg','Act Pos'],colorscale:'Viridis'}], {title:'Confusion Matrix'});
+            // ROC curve
+            let rocDiv = document.getElementById('ml-roc');
+            if (!rocDiv) {rocDiv = document.createElement('div');rocDiv.id='ml-roc';rocDiv.className='graph';document.getElementById('ml-graph').after(rocDiv);}
+            Plotly.newPlot('ml-roc', [{x:[0,0.1,0.2,0.4,0.7,1],y:[0,0.5,0.7,0.85,0.95,1],type:'scatter',mode:'lines+markers',name:'ROC'}], {title:'ROC Curve',xaxis:{title:'FPR'},yaxis:{title:'TPR'}});
+            // Feature importance
+            let fiDiv = document.getElementById('ml-fi');
+            if (!fiDiv) {fiDiv = document.createElement('div');fiDiv.id='ml-fi';fiDiv.className='graph';document.getElementById('ml-roc').after(fiDiv);}
+            Plotly.newPlot('ml-fi', [{x:['Age','Income','Duration','Purchases'],y:[0.3,0.4,0.2,0.1],type:'bar',name:'Importance'}], {title:'Feature Importance'});
+        }
+        function updateDLGraph(algorithm = 'Multi-layer Perceptron', params = {}) {
+            // ... existing training/validation curves ...
+            // Add loss and accuracy, plus validation curve
+            const epochs = params.epochs || 50;
+            const learningRate = params.learning_rate || 0.01;
+            const xValues = Array.from({length: epochs}, (_, i) => i + 1);
+            const accuracyValues = xValues.map(x => 0.5 + (1 - Math.exp(-learningRate * x * 0.3)) + (Math.random()-0.5)*0.1);
+            const valAccuracy = xValues.map(x => accuracyValues[x-1] - Math.random()*0.05);
+            const lossValues = xValues.map(x => Math.exp(-learningRate * x * 0.3) + (Math.random()-0.5)*0.1);
+            document.getElementById('dl-accuracy').textContent = accuracyValues[accuracyValues.length - 1].toFixed(3);
+            document.getElementById('dl-loss').textContent = lossValues[lossValues.length - 1].toFixed(3);
+            // Training/validation accuracy
+            Plotly.newPlot('dl-graph', [
+                {x:xValues,y:accuracyValues,type:'scatter',mode:'lines',name:'Train Acc',line:{color:'#ff69b4'}},
+                {x:xValues,y:valAccuracy,type:'scatter',mode:'lines',name:'Val Acc',line:{color:'#4a90e2'}}
+            ], {title:'Training/Validation Accuracy',xaxis:{title:'Epoch'},yaxis:{title:'Accuracy'}});
+            // Loss curve
+            let lossDiv = document.getElementById('dl-loss-curve');
+            if (!lossDiv) {lossDiv = document.createElement('div');lossDiv.id='dl-loss-curve';lossDiv.className='graph';document.getElementById('dl-graph').after(lossDiv);}
+            Plotly.newPlot('dl-loss-curve', [{x:xValues,y:lossValues,type:'scatter',mode:'lines',name:'Loss',line:{color:'#673ab7'}}], {title:'Training Loss',xaxis:{title:'Epoch'},yaxis:{title:'Loss'}});
+            // Simulated confusion matrix
+            let cmDiv = document.getElementById('dl-cm');
+            if (!cmDiv) {cmDiv = document.createElement('div');cmDiv.id='dl-cm';cmDiv.className='graph';document.getElementById('dl-loss-curve').after(cmDiv);}
+            Plotly.newPlot('dl-cm', [{type:'heatmap',z:[[170,30],[25,175]],x:['Pred Neg','Pred Pos'],y:['Act Neg','Act Pos'],colorscale:'Viridis'}], {title:'Confusion Matrix'});
+        }
+
+        // --- Hook up quantum dropdown ---
+        document.getElementById('algorithm').addEventListener('change', function() {
+            if (document.querySelector('.tab.quantum.active')) {
+                updateQuantumVisuals();
+            }
+        });
+        document.querySelector('.tab.quantum').addEventListener('click', function() {
+            setTimeout(updateQuantumVisuals, 100);
+        });
     </script>
 </body>
 </html> 
