@@ -239,7 +239,7 @@
 
             <!-- Quantum Computing Analysis Tab -->
             <div id="quantum" class="tab-content">
-                <h2>Quantum Circuit Configuration</h2>
+                <h2>Quantum Circuit Analysis</h2>
                 <div class="controls">
                     <select id="num-qubits">
                         <option value="2">2 Qubits</option>
@@ -667,10 +667,18 @@
                 {x: ages, type: 'histogram', name: 'Age Distribution', opacity: 0.7, marker: { color: '#4CAF50' }},
                 {x: income, type: 'histogram', name: 'Income Distribution', opacity: 0.5, marker: { color: '#ff69b4' }}
             ], {title: 'Customer Age and Income Distribution', xaxis: { title: 'Value' }, yaxis: { title: 'Count' }, bargap: 0.1, barmode: 'overlay'});
+            // Add explanation below
+            let genGraph = document.getElementById('general-graph');
+            let genExp = document.getElementById('gen-exp');
+            if (!genExp) { genExp = document.createElement('div'); genExp.id = 'gen-exp'; genGraph.after(genExp); }
+            genExp.innerHTML = '<p style="margin:8px 0 24px 0;color:#555;font-size:15px;">This histogram shows the distribution of customer ages and incomes in the marketing dataset. It helps identify the most common age and income ranges among customers.</p>';
             // Correlation heatmap
             let corrDiv = document.getElementById('gen-corr');
             if (!corrDiv) {corrDiv = document.createElement('div');corrDiv.id = 'gen-corr';corrDiv.className = 'graph';document.getElementById('general-graph').after(corrDiv);}
             Plotly.newPlot('gen-corr', [{z:[[1,0.5,0.2],[0.5,1,0.3],[0.2,0.3,1]],x:['Age','Income','Purchases'],y:['Age','Income','Purchases'],type:'heatmap',colorscale:'Viridis'}], {title:'Correlation Heatmap'});
+            let corrExp = document.getElementById('gen-corr-exp');
+            if (!corrExp) { corrExp = document.createElement('div'); corrExp.id = 'gen-corr-exp'; document.getElementById('gen-corr').after(corrExp); }
+            corrExp.innerHTML = '<p style="margin:8px 0 24px 0;color:#555;font-size:15px;">This heatmap shows the correlation between Age, Income, and Purchases. Stronger colors indicate stronger relationships between features.</p>';
             // Boxplot of Income by Marital Status
             let boxDiv = document.getElementById('gen-box');
             if (!boxDiv) {boxDiv = document.createElement('div');boxDiv.id = 'gen-box';boxDiv.className = 'graph';document.getElementById('gen-corr').after(boxDiv);}
